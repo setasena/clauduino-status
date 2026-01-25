@@ -1,6 +1,6 @@
 ---
 name: troubleshoot
-description: Systematic debugging for Clauduino Status issues. Use when users experience: (1) WiFi connection failures, (2) Device not responding to API calls, (3) LEDs not working or incorrect behavior, (4) Claude Code hooks not triggering, (5) Serial monitor errors, (6) Network connectivity problems.
+description: "Systematic debugging for Clauduino Status issues. Use when users experience: (1) WiFi connection failures, (2) Device not responding to API calls, (3) LEDs not working or incorrect behavior, (4) Claude Code hooks not triggering, (5) Serial monitor errors, (6) Network connectivity problems."
 ---
 
 # Troubleshooting Guide

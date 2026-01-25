@@ -1,6 +1,6 @@
 ---
 name: flash-firmware
-description: Streamline firmware upload for Clauduino Status ESP8266/ESP32 boards. Use when users need to: (1) Upload firmware/claude_code_led/claude_code_led.ino, (2) Configure Arduino IDE for ESP boards, (3) Set up board manager URLs, (4) Verify serial output at 115200 baud, (5) Troubleshoot upload failures.
+description: "Streamline firmware upload for Clauduino Status ESP8266/ESP32 boards. Use when users need to: (1) Upload firmware/claude_code_led/claude_code_led.ino, (2) Configure Arduino IDE for ESP boards, (3) Set up board manager URLs, (4) Verify serial output at 115200 baud, (5) Troubleshoot upload failures."
 ---
 
 # Firmware Flashing Guide

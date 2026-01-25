@@ -1,6 +1,6 @@
 ---
 name: configure-integration
-description: Configure Claude Code hooks to control Clauduino Status LED indicator. Use when users need to: (1) Set up ~/.claude/settings.json hooks, (2) Configure device IP address, (3) Add sound notifications (macOS), (4) Test hook execution with /hooks command, (5) Troubleshoot hook triggers.
+description: "Configure Claude Code hooks to control Clauduino Status LED indicator. Use when users need to: (1) Set up ~/.claude/settings.json hooks, (2) Configure device IP address, (3) Add sound notifications (macOS), (4) Test hook execution with /hooks command, (5) Troubleshoot hook triggers."
 ---
 
 # Claude Code Integration Setup

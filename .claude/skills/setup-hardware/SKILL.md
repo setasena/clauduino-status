@@ -1,6 +1,6 @@
 ---
 name: setup-hardware
-description: Guide users through complete hardware setup for Clauduino Status IoT LED indicator. Use when users need help with: (1) Wiring ESP8266/ESP32 with LEDs, (2) Pin mapping selection, (3) Resistor calculations, (4) Hardware verification before firmware upload, (5) Physical assembly troubleshooting.
+description: "Guide users through complete hardware setup for Clauduino Status IoT LED indicator. Use when users need help with: (1) Wiring ESP8266/ESP32 with LEDs, (2) Pin mapping selection, (3) Resistor calculations, (4) Hardware verification before firmware upload, (5) Physical assembly troubleshooting."
 ---
 
 # Hardware Setup Guide

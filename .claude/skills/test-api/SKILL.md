@@ -1,6 +1,6 @@
 ---
 name: test-api
-description: Test Clauduino Status API endpoints and verify LED functionality. Use when users need to: (1) Verify device is responding, (2) Test all LED states (red/yellow/green/waiting), (3) Check status endpoint, (4) Validate SSE stream (simulator only), (5) Debug API connectivity issues.
+description: "Test Clauduino Status API endpoints and verify LED functionality. Use when users need to: (1) Verify device is responding, (2) Test all LED states (red/yellow/green/waiting), (3) Check status endpoint, (4) Validate SSE stream (simulator only), (5) Debug API connectivity issues."
 ---
 
 # API Testing Workflow

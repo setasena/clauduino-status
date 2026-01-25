@@ -1,6 +1,6 @@
 ---
 name: add-led-pattern
-description: Add new LED animation patterns to Clauduino Status firmware. Use when users want to: (1) Create custom LED animations, (2) Add new API endpoints for LED states, (3) Implement new visual patterns (fade, pulse, strobe, etc.), (4) Extend firmware with additional states, (5) Update documentation for new patterns.
+description: "Add new LED animation patterns to Clauduino Status firmware. Use when users want to: (1) Create custom LED animations, (2) Add new API endpoints for LED states, (3) Implement new visual patterns (fade, pulse, strobe, etc.), (4) Extend firmware with additional states, (5) Update documentation for new patterns."
 ---
 
 # Add LED Pattern
