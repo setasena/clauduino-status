@@ -71,30 +71,46 @@ curl http://192.168.1.xxx/red      # Red LED on (idle)
 
 ## Step 6: Connect to Claude Code
 
-Add to your `~/.zshrc` or `~/.bashrc`:
+Create `~/.claude/settings.json`:
 
 ```bash
-export CLAUDE_LED_IP="192.168.1.xxx"  # Your device IP
+mkdir -p ~/.claude
+nano ~/.claude/settings.json
+```
 
-alias claude='_claude_with_led'
-_claude_with_led() {
-    curl -s "http://$CLAUDE_LED_IP/yellow" > /dev/null 2>&1
-    command claude "$@"
-    local exit_code=$?
-    if [ $exit_code -eq 0 ]; then
-        curl -s "http://$CLAUDE_LED_IP/green" > /dev/null 2>&1
-        (sleep 5 && curl -s "http://$CLAUDE_LED_IP/red" > /dev/null 2>&1) &
-    else
-        curl -s "http://$CLAUDE_LED_IP/red" > /dev/null 2>&1
-    fi
-    return $exit_code
+Add this configuration (replace `192.168.1.xxx` with your device IP):
+
+```json
+{
+  "model": "sonnet",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --max-time 1 http://192.168.1.xxx/yellow > /dev/null 2>&1",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --max-time 1 http://192.168.1.xxx/green > /dev/null 2>&1 && (sleep 5 && curl -s --max-time 1 http://192.168.1.xxx/red > /dev/null 2>&1) &",
+            "timeout": 2
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-Reload your shell:
-```bash
-source ~/.zshrc   # or ~/.bashrc
-```
+Save and restart Claude Code for hooks to take effect.
 
 ## Done!
 

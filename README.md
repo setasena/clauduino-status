@@ -69,11 +69,16 @@ clauduino-status/
 
 ## How It Works
 
-1. Claude Code wrapper script sends HTTP request to device
-2. Device changes LED state based on endpoint called
-3. Yellow LED breathes while processing (PWM animation)
-4. Green LED lights when task completes
-5. Script returns to idle (red) after completion
+1. Claude Code hooks trigger HTTP requests to device when you interact with Claude
+2. Device changes LED state based on endpoint called (`/yellow`, `/green`, `/red`)
+3. Yellow LED breathes while Claude is thinking (PWM animation)
+4. Green LED lights when Claude finishes responding
+5. Automatically returns to idle (red) after 5 seconds
+
+**Integration Methods:**
+- **Hooks** (recommended) - Automatic integration via `~/.claude/settings.json`
+- **Wrapper Script** - For non-interactive commands
+- **Shell Alias** - Alternative to hooks
 
 ## License
 

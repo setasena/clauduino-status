@@ -74,6 +74,47 @@ All LEDs through 220ohm resistors to ground
 - WiFi auto-reconnects with LED cycling animation during connection
 - Firmware uses `#ifdef` preprocessor directives for ESP8266/ESP32 compatibility
 
+## Claude Code Integration
+
+**Recommended Setup:** Use hooks in `~/.claude/settings.json` for automatic LED status updates.
+
+**For Simulator (localhost:3000):**
+```json
+{
+  "model": "sonnet",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --max-time 1 http://localhost:3000/yellow > /dev/null 2>&1",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --max-time 1 http://localhost:3000/green > /dev/null 2>&1 && (sleep 5 && curl -s --max-time 1 http://localhost:3000/red > /dev/null 2>&1) &",
+            "timeout": 2
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Important:**
+- File location: `~/.claude/settings.json` (NOT `~/.claude-code/settings.json`)
+- Restart Claude Code after editing settings for hooks to load
+- Use `/hooks` command to verify hooks are registered
+- Replace `localhost:3000` with device IP (e.g., `192.168.1.100`) for hardware
+
 ## Documentation
 
 See `docs/` folder for detailed guides:
