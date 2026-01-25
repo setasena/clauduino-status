@@ -30,6 +30,8 @@ A physical LED status indicator for Claude Code. See at a glance whether Claude 
 
 ## Try the Simulator
 
+![Clauduino Status Simulator Demo](clauduino-status-simulator-demo.gif)
+
 No hardware? Test with the Node.js simulator:
 
 ```bash
