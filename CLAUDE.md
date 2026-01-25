@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Clauduino Status is an IoT project that creates a physical LED status indicator for Claude Code. It displays operational state through a WiFi-connected ESP8266/ESP32 microcontroller with three LEDs (Red=idle, Yellow=processing with breathing animation/waiting with blinking animation, Green=complete).
+Clauduino Status is an IoT project that creates a physical LED status indicator for Claude Code. It displays operational state through a WiFi-connected ESP8266/ESP32 microcontroller with three LEDs (Red=idle, Yellow=processing with breathing animation/waiting with blinking animation, Green=complete). Optional sound notifications provide audio feedback on macOS.
 
 ## Project Structure
 
@@ -15,13 +15,18 @@ clauduino-status/
 ├── simulator/                   # Node.js test server
 │   ├── server.js
 │   └── index.html
+├── sound/                       # Audio notification files (macOS)
+│   ├── waiting_user_input.m4a
+│   └── finish.m4a
 ├── scripts/                     # Integration scripts
-│   └── claude-led.sh
+│   ├── claude-led.sh
+│   └── play-sound.sh
 └── docs/                        # Documentation
     ├── QUICK_START.md
     ├── HARDWARE_GUIDE.md
     ├── FIRMWARE_GUIDE.md
     ├── INTEGRATION_GUIDE.md
+    ├── SOUND_INTEGRATION.md
     ├── API_REFERENCE.md
     └── TROUBLESHOOTING.md
 ```
@@ -78,6 +83,8 @@ All LEDs through 220ohm resistors to ground
 ## Claude Code Integration
 
 **Recommended Setup:** Use hooks in `~/.claude/settings.json` for automatic LED status updates.
+
+**Optional Sound Integration (macOS):** Add sound notifications alongside LED control. See [Sound Integration Guide](docs/SOUND_INTEGRATION.md) for complete setup.
 
 **For Simulator (localhost:3000):**
 ```json
@@ -147,5 +154,6 @@ See `docs/` folder for detailed guides:
 - [Hardware Guide](docs/HARDWARE_GUIDE.md) - Shopping list and wiring
 - [Firmware Guide](docs/FIRMWARE_GUIDE.md) - Arduino setup and upload
 - [Integration Guide](docs/INTEGRATION_GUIDE.md) - Connect to Claude Code
+- [Sound Integration](docs/SOUND_INTEGRATION.md) - Add audio notifications (macOS)
 - [API Reference](docs/API_REFERENCE.md) - All endpoints
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
