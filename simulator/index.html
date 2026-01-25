@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arduino LED Simulator - Claude Code Status</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-weight: 300;
+      font-size: 1.8rem;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 40px;
+      font-size: 0.9rem;
+    }
+
+    .arduino-board {
+      background: linear-gradient(145deg, #2d4a3e, #1e3a2f);
+      border-radius: 16px;
+      padding: 40px 50px;
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border: 1px solid #3d5a4e;
+    }
+
+    .leds-container {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .led-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .led {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .led::before {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 10px;
+      width: 15px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      filter: blur(2px);
+    }
+
+    .led-red {
+      background: #4a1a1a;
+      border: 2px solid #6a2a2a;
+      box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .led-red.active {
+      background: radial-gradient(circle at 30% 30%, #ff6b6b, #ff0000);
+      box-shadow: 
+        0 0 20px #ff0000,
+        0 0 40px rgba(255, 0, 0, 0.5),
+        0 0 60px rgba(255, 0, 0, 0.3),
+        inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .led-yellow {
+      background: #4a4a1a;
+      border: 2px solid #6a6a2a;
+      box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .led-yellow.active {
+      background: radial-gradient(circle at 30% 30%, #ffeb3b, #ffc107);
+      box-shadow: 
+        0 0 20px #ffc107,
+        0 0 40px rgba(255, 193, 7, 0.5),
+        0 0 60px rgba(255, 193, 7, 0.3),
+        inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .led-yellow.breathing {
+      animation: breathing 1.5s ease-in-out infinite;
+    }
+
+    .led-green {
+      background: #1a4a1a;
+      border: 2px solid #2a6a2a;
+      box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .led-green.active {
+      background: radial-gradient(circle at 30% 30%, #69f0ae, #00e676);
+      box-shadow: 
+        0 0 20px #00e676,
+        0 0 40px rgba(0, 230, 118, 0.5),
+        0 0 60px rgba(0, 230, 118, 0.3),
+        inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    @keyframes breathing {
+      0%, 100% {
+        opacity: 0.4;
+        box-shadow: 
+          0 0 10px #ffc107,
+          0 0 20px rgba(255, 193, 7, 0.3),
+          inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+      }
+      50% {
+        opacity: 1;
+        box-shadow: 
+          0 0 30px #ffc107,
+          0 0 60px rgba(255, 193, 7, 0.6),
+          0 0 90px rgba(255, 193, 7, 0.4),
+          inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    .led-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    .status-display {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .status-text {
+      font-size: 1.5rem;
+      font-weight: 300;
+      margin-bottom: 5px;
+    }
+
+    .status-idle { color: #ff6b6b; }
+    .status-processing { color: #ffc107; }
+    .status-complete { color: #00e676; }
+
+    .status-description {
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .controls {
+      margin-top: 50px;
+      display: flex;
+      gap: 15px;
+    }
+
+    button {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-red {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+      color: white;
+    }
+
+    .btn-red:hover {
+      box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-yellow {
+      background: linear-gradient(135deg, #ffc107, #e6ac00);
+      color: #333;
+    }
+
+    .btn-yellow:hover {
+      box-shadow: 0 5px 20px rgba(255, 193, 7, 0.4);
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, #00e676, #00c853);
+      color: #333;
+    }
+
+    .btn-green:hover {
+      box-shadow: 0 5px 20px rgba(0, 230, 118, 0.4);
+    }
+
+    .api-info {
+      margin-top: 50px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 25px 35px;
+      max-width: 500px;
+    }
+
+    .api-info h3 {
+      font-weight: 400;
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+
+    .api-endpoint {
+      background: #0d1117;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.8rem;
+      margin: 8px 0;
+      color: #7ee787;
+    }
+
+    .api-note {
+      color: #666;
+      font-size: 0.75rem;
+      margin-top: 15px;
+    }
+
+    .server-status {
+      margin-top: 30px;
+      padding: 15px 25px;
+      background: rgba(0, 230, 118, 0.1);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .server-status.offline {
+      background: rgba(255, 107, 107, 0.1);
+      border-color: rgba(255, 107, 107, 0.3);
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00e676;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
+    }
+
+    .server-status.offline .dot {
+      background: #ff6b6b;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🔌 Arduino LED Simulator</h1>
+  <p class="subtitle">Claude Code Status Indicator</p>
+
+  <div class="arduino-board">
+    <div class="leds-container">
+      <div class="led-wrapper">
+        <div class="led led-red active" id="led-red"></div>
+        <span class="led-label">Idle</span>
+      </div>
+      <div class="led-wrapper">
+        <div class="led led-yellow" id="led-yellow"></div>
+        <span class="led-label">Processing</span>
+      </div>
+      <div class="led-wrapper">
+        <div class="led led-green" id="led-green"></div>
+        <span class="led-label">Complete</span>
+      </div>
+    </div>
+
+    <div class="status-display">
+      <div class="status-text status-idle" id="status-text">IDLE</div>
+      <div class="status-description" id="status-description">Waiting for Claude Code input...</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-red" onclick="setStatus('idle')">🔴 Idle</button>
+    <button class="btn-yellow" onclick="setStatus('processing')">🟡 Processing</button>
+    <button class="btn-green" onclick="setStatus('complete')">🟢 Complete</button>
+  </div>
+
+  <div class="api-info">
+    <h3>📡 API Endpoints (for testing with curl)</h3>
+    <div class="api-endpoint">GET /red &nbsp;&nbsp;&nbsp;→ Set to Idle</div>
+    <div class="api-endpoint">GET /yellow → Set to Processing</div>
+    <div class="api-endpoint">GET /green &nbsp;→ Set to Complete</div>
+    <p class="api-note">
+      Run the Node.js server, then test with:<br>
+      <code style="color: #7ee787;">curl http://localhost:3000/yellow</code>
+    </p>
+  </div>
+
+  <div class="server-status offline" id="server-status">
+    <span class="dot"></span>
+    <span id="server-status-text">Server not connected (UI-only mode)</span>
+  </div>
+
+  <script>
+    let currentStatus = 'idle';
+
+    function setStatus(status) {
+      currentStatus = status;
+      
+      // Reset all LEDs
+      document.getElementById('led-red').classList.remove('active');
+      document.getElementById('led-yellow').classList.remove('active', 'breathing');
+      document.getElementById('led-green').classList.remove('active');
+      
+      const statusText = document.getElementById('status-text');
+      const statusDesc = document.getElementById('status-description');
+      
+      // Remove all status classes
+      statusText.classList.remove('status-idle', 'status-processing', 'status-complete');
+      
+      switch(status) {
+        case 'idle':
+        case 'red':
+          document.getElementById('led-red').classList.add('active');
+          statusText.textContent = 'IDLE';
+          statusText.classList.add('status-idle');
+          statusDesc.textContent = 'Waiting for Claude Code input...';
+          break;
+          
+        case 'processing':
+        case 'yellow':
+          document.getElementById('led-yellow').classList.add('active', 'breathing');
+          statusText.textContent = 'PROCESSING';
+          statusText.classList.add('status-processing');
+          statusDesc.textContent = 'Claude Code is thinking...';
+          break;
+          
+        case 'complete':
+        case 'green':
+          document.getElementById('led-green').classList.add('active');
+          statusText.textContent = 'COMPLETE';
+          statusText.classList.add('status-complete');
+          statusDesc.textContent = 'Task finished successfully!';
+          break;
+      }
+    }
+
+    // Check for server connection and listen for SSE updates
+    const evtSource = new EventSource('/events');
+    
+    evtSource.onopen = function() {
+      const serverStatus = document.getElementById('server-status');
+      const serverStatusText = document.getElementById('server-status-text');
+      serverStatus.classList.remove('offline');
+      serverStatusText.textContent = 'Server connected - Ready for API calls';
+    };
+    
+    evtSource.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      if (data.status) {
+        setStatus(data.status);
+      }
+    };
+    
+    evtSource.onerror = function() {
+      const serverStatus = document.getElementById('server-status');
+      const serverStatusText = document.getElementById('server-status-text');
+      serverStatus.classList.add('offline');
+      serverStatusText.textContent = 'Server not connected (UI-only mode)';
+    };
+
+    // Initialize with idle state
+    setStatus('idle');
+  </script>
+</body>
+</html>
