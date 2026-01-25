@@ -13,7 +13,8 @@ A physical LED status indicator for Claude Code. See at a glance whether Claude 
 
 **LED States:**
 - **Red** = Idle (waiting for input)
-- **Yellow** = Processing (breathing animation)
+- **Yellow (Breathing)** = Processing (Claude is thinking)
+- **Yellow (Blinking)** = Waiting (Claude needs user decision)
 - **Green** = Complete (task finished)
 
 ## Quick Links
@@ -40,7 +41,8 @@ Open http://localhost:3000 to see the virtual LEDs.
 
 Test the API:
 ```bash
-curl http://localhost:3000/yellow    # Start processing
+curl http://localhost:3000/yellow    # Start processing (breathing)
+curl http://localhost:3000/waiting   # Waiting for input (blinking)
 curl http://localhost:3000/green     # Complete
 curl http://localhost:3000/red       # Back to idle
 ```

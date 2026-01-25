@@ -130,18 +130,39 @@
     @keyframes breathing {
       0%, 100% {
         opacity: 0.4;
-        box-shadow: 
+        box-shadow:
           0 0 10px #ffc107,
           0 0 20px rgba(255, 193, 7, 0.3),
           inset 0 -5px 10px rgba(0, 0, 0, 0.2);
       }
       50% {
         opacity: 1;
-        box-shadow: 
+        box-shadow:
           0 0 30px #ffc107,
           0 0 60px rgba(255, 193, 7, 0.6),
           0 0 90px rgba(255, 193, 7, 0.4),
           inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    .led-yellow.blinking {
+      animation: blinking 1s infinite;
+    }
+
+    @keyframes blinking {
+      0%, 49% {
+        opacity: 1;
+        background: radial-gradient(circle at 30% 30%, #ffeb3b, #ffc107);
+        box-shadow:
+          0 0 20px #ffc107,
+          0 0 40px rgba(255, 193, 7, 0.5),
+          0 0 60px rgba(255, 193, 7, 0.3),
+          inset 0 -5px 10px rgba(0, 0, 0, 0.2);
+      }
+      50%, 100% {
+        opacity: 0.1;
+        background: #4a4a1a;
+        box-shadow: inset 0 -5px 10px rgba(0, 0, 0, 0.3);
       }
     }
 
@@ -317,14 +338,16 @@
   <div class="controls">
     <button class="btn-red" onclick="setStatus('idle')">🔴 Idle</button>
     <button class="btn-yellow" onclick="setStatus('processing')">🟡 Processing</button>
+    <button class="btn-yellow" onclick="setStatus('waiting')">🔶 Waiting</button>
     <button class="btn-green" onclick="setStatus('complete')">🟢 Complete</button>
   </div>
 
   <div class="api-info">
     <h3>📡 API Endpoints (for testing with curl)</h3>
-    <div class="api-endpoint">GET /red &nbsp;&nbsp;&nbsp;→ Set to Idle</div>
-    <div class="api-endpoint">GET /yellow → Set to Processing</div>
-    <div class="api-endpoint">GET /green &nbsp;→ Set to Complete</div>
+    <div class="api-endpoint">GET /red &nbsp;&nbsp;&nbsp;&nbsp;→ Set to Idle</div>
+    <div class="api-endpoint">GET /yellow &nbsp;→ Set to Processing</div>
+    <div class="api-endpoint">GET /waiting → Set to Waiting</div>
+    <div class="api-endpoint">GET /green &nbsp;&nbsp;→ Set to Complete</div>
     <p class="api-note">
       Run the Node.js server, then test with:<br>
       <code style="color: #7ee787;">curl http://localhost:3000/yellow</code>
@@ -341,18 +364,18 @@
 
     function setStatus(status) {
       currentStatus = status;
-      
+
       // Reset all LEDs
       document.getElementById('led-red').classList.remove('active');
-      document.getElementById('led-yellow').classList.remove('active', 'breathing');
+      document.getElementById('led-yellow').classList.remove('active', 'breathing', 'blinking');
       document.getElementById('led-green').classList.remove('active');
-      
+
       const statusText = document.getElementById('status-text');
       const statusDesc = document.getElementById('status-description');
-      
+
       // Remove all status classes
       statusText.classList.remove('status-idle', 'status-processing', 'status-complete');
-      
+
       switch(status) {
         case 'idle':
         case 'red':
@@ -361,7 +384,7 @@
           statusText.classList.add('status-idle');
           statusDesc.textContent = 'Waiting for Claude Code input...';
           break;
-          
+
         case 'processing':
         case 'yellow':
           document.getElementById('led-yellow').classList.add('active', 'breathing');
@@ -369,7 +392,15 @@
           statusText.classList.add('status-processing');
           statusDesc.textContent = 'Claude Code is thinking...';
           break;
-          
+
+        case 'waiting':
+        case 'prompt':
+          document.getElementById('led-yellow').classList.add('active', 'blinking');
+          statusText.textContent = 'WAITING FOR INPUT';
+          statusText.classList.add('status-processing');
+          statusDesc.textContent = 'Claude needs your decision...';
+          break;
+
         case 'complete':
         case 'green':
           document.getElementById('led-green').classList.add('active');

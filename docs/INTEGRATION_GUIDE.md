@@ -38,6 +38,30 @@ This method automatically integrates with Claude Code's interactive sessions usi
            ]
          }
        ],
+       "PermissionRequest": [
+         {
+           "matcher": "",
+           "hooks": [
+             {
+               "type": "command",
+               "command": "curl -s --max-time 1 http://192.168.1.xxx/waiting > /dev/null 2>&1",
+               "timeout": 2
+             }
+           ]
+         }
+       ],
+       "Notification": [
+         {
+           "matcher": "idle_prompt",
+           "hooks": [
+             {
+               "type": "command",
+               "command": "curl -s --max-time 1 http://192.168.1.xxx/waiting > /dev/null 2>&1",
+               "timeout": 2
+             }
+           ]
+         }
+       ],
        "Stop": [
          {
            "hooks": [
@@ -64,6 +88,30 @@ This method automatically integrates with Claude Code's interactive sessions usi
              {
                "type": "command",
                "command": "curl -s --max-time 1 http://localhost:3000/yellow > /dev/null 2>&1",
+               "timeout": 2
+             }
+           ]
+         }
+       ],
+       "PermissionRequest": [
+         {
+           "matcher": "",
+           "hooks": [
+             {
+               "type": "command",
+               "command": "curl -s --max-time 1 http://localhost:3000/waiting > /dev/null 2>&1",
+               "timeout": 2
+             }
+           ]
+         }
+       ],
+       "Notification": [
+         {
+           "matcher": "idle_prompt",
+           "hooks": [
+             {
+               "type": "command",
+               "command": "curl -s --max-time 1 http://localhost:3000/waiting > /dev/null 2>&1",
                "timeout": 2
              }
            ]
@@ -96,7 +144,9 @@ This method automatically integrates with Claude Code's interactive sessions usi
 
 ### How It Works
 
-- `UserPromptSubmit` - Triggers when you send a message → Yellow LED (processing)
+- `UserPromptSubmit` - Triggers when you send a message → Yellow LED (breathing - processing)
+- `PermissionRequest` - Triggers when Claude asks for permission → Yellow LED (blinking - waiting)
+- `Notification` (idle_prompt) - Triggers when Claude is idle for 60+ seconds → Yellow LED (blinking - waiting)
 - `Stop` - Triggers when Claude finishes responding → Green LED (complete) → Red LED after 5s (idle)
 
 ### Troubleshooting Hooks
@@ -187,10 +237,15 @@ source ~/.zshrc   # or ~/.bashrc
 Test the API endpoints directly:
 
 ```bash
-# Should turn yellow (breathing)
+# Should turn yellow (breathing animation)
 curl http://192.168.1.xxx/yellow
 # Or for simulator:
 curl http://localhost:3000/yellow
+
+# Should turn yellow (blinking animation)
+curl http://192.168.1.xxx/waiting
+# Or for simulator:
+curl http://localhost:3000/waiting
 
 # Should turn green
 curl http://192.168.1.xxx/green
@@ -215,7 +270,7 @@ After configuring `~/.claude/settings.json` and restarting Claude Code:
    ```
    /hooks
    ```
-   You should see `UserPromptSubmit` and `Stop` hooks listed.
+   You should see `UserPromptSubmit`, `PermissionRequest`, `Notification`, and `Stop` hooks listed.
 
 3. Send a test message:
    ```
@@ -224,12 +279,14 @@ After configuring `~/.claude/settings.json` and restarting Claude Code:
 
 4. **Expected behavior:**
    - 🟡 Yellow LED turns on immediately (breathing animation)
+   - 🔶 Yellow LED blinking if Claude asks for permission
    - 🟢 Green LED when Claude finishes responding
    - 🔴 Red LED after 5 seconds
 
 5. **Check simulator server logs** - you should see:
    ```
    🟡 Status → PROCESSING (from GET /yellow)
+   🔶 Status → WAITING (from GET /waiting - if permission requested)
    🟢 Status → COMPLETE (from GET /green)
    🔴 Status → IDLE (from GET /red)
    ```

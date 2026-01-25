@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Clauduino Status is an IoT project that creates a physical LED status indicator for Claude Code. It displays operational state through a WiFi-connected ESP8266/ESP32 microcontroller with three LEDs (Red=idle, Yellow=processing with breathing animation, Green=complete).
+Clauduino Status is an IoT project that creates a physical LED status indicator for Claude Code. It displays operational state through a WiFi-connected ESP8266/ESP32 microcontroller with three LEDs (Red=idle, Yellow=processing with breathing animation/waiting with blinking animation, Green=complete).
 
 ## Project Structure
 
@@ -54,6 +54,7 @@ curl http://localhost:3000/status    # Get current status as JSON
 |----------|-------|-----------|
 | `/red` | `/idle` | Red LED on |
 | `/yellow` | `/processing` | Yellow LED breathing |
+| `/waiting` | `/prompt` | Yellow LED blinking |
 | `/green` | `/complete` | Green LED on |
 | `/status` | - | JSON with status, uptime, IP, RSSI |
 | `/events` | - | SSE stream (simulator only) |
@@ -89,6 +90,30 @@ All LEDs through 220ohm resistors to ground
           {
             "type": "command",
             "command": "curl -s --max-time 1 http://localhost:3000/yellow > /dev/null 2>&1",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --max-time 1 http://localhost:3000/waiting > /dev/null 2>&1",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s --max-time 1 http://localhost:3000/waiting > /dev/null 2>&1",
             "timeout": 2
           }
         ]

@@ -56,6 +56,13 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (url === '/waiting' || url === '/prompt') {
+    broadcast('waiting');
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('OK - Status: WAITING (Yellow LED - Blinking)');
+    return;
+  }
+
   // Status endpoint
   if (url === '/status') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -120,6 +127,7 @@ server.listen(PORT, () => {
 ║   API Endpoints:                                          ║
 ║   ├── GET /red     → Set to Idle (Red LED)               ║
 ║   ├── GET /yellow  → Set to Processing (Yellow LED)      ║
+║   ├── GET /waiting → Set to Waiting (Yellow Blinking)    ║
 ║   ├── GET /green   → Set to Complete (Green LED)         ║
 ║   └── GET /status  → Get current status                  ║
 ║                                                           ║

@@ -71,6 +71,41 @@ curl http://192.168.1.100/processing
 
 ---
 
+### Set Waiting State
+
+Sets the yellow LED blinking (fast). Indicates Claude is waiting for user input/decision.
+
+```http
+GET /waiting
+GET /prompt
+```
+
+**Response:**
+```
+HTTP/1.1 200 OK
+Content-Type: text/plain
+
+OK - Status: WAITING (Yellow LED - Blinking)
+```
+
+**Example:**
+```bash
+curl http://192.168.1.100/waiting
+curl http://192.168.1.100/prompt
+```
+
+**Blinking Animation:**
+- On: 500ms (100% brightness)
+- Off: 500ms (0% brightness)
+- Total cycle: 1000ms
+
+**Use Case:**
+- When Claude asks for permission via `PermissionRequest` hook
+- When Claude Code is idle for 60+ seconds (idle_prompt notification)
+- Distinguishes "waiting for user" from "processing" (breathing animation)
+
+---
+
 ### Set Complete State
 
 Sets the green LED on (solid). Indicates task finished successfully.
@@ -116,7 +151,7 @@ GET /status
 
 | Field | Type | Description |
 |-------|------|-------------|
-| status | string | Current state: "idle", "processing", or "complete" |
+| status | string | Current state: "idle", "processing", "waiting", or "complete" |
 | uptime | number | Seconds since device boot |
 | ip | string | Device IP address |
 | rssi | number | WiFi signal strength in dBm (hardware only) |
@@ -210,6 +245,7 @@ This allows calling the API from any web page.
 |----------|-------|--------|-----|
 | `/red` | `/idle` | Set idle state | Red (solid) |
 | `/yellow` | `/processing` | Set processing state | Yellow (breathing) |
+| `/waiting` | `/prompt` | Set waiting state | Yellow (blinking) |
 | `/green` | `/complete` | Set complete state | Green (solid) |
 | `/status` | - | Get JSON status | - |
 | `/events` | - | SSE stream (simulator) | - |
@@ -226,6 +262,18 @@ curl http://192.168.1.100/yellow
 
 # Wait (simulating Claude thinking)
 sleep 3
+
+# Claude asks for permission
+curl http://192.168.1.100/waiting
+
+# User makes decision
+sleep 2
+
+# Continue processing
+curl http://192.168.1.100/yellow
+
+# Wait a bit more
+sleep 2
 
 # Complete
 curl http://192.168.1.100/green

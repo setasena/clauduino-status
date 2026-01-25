@@ -7,11 +7,13 @@
  * LED States:
  * - Red (D1): Idle - Waiting for input
  * - Yellow (D2): Processing - Claude Code is thinking (with breathing effect)
+ * - Yellow (D2): Waiting - Blinking when Claude needs user input
  * - Green (D3): Complete - Task finished successfully
- * 
+ *
  * API Endpoints:
  * - GET /red or /idle       -> Set to idle state
  * - GET /yellow or /processing -> Set to processing state
+ * - GET /waiting or /prompt -> Set to waiting for input state (blinking yellow)
  * - GET /green or /complete -> Set to complete state
  * - GET /status             -> Get current status as JSON
  * 
@@ -66,26 +68,33 @@ int breathDirection = 5;  // Increment/decrement amount
 unsigned long lastBreathUpdate = 0;
 const int BREATH_INTERVAL = 20;  // ms between brightness updates
 
+// Blinking effect variables (for waiting state)
+bool isBlinking = false;
+bool blinkState = false;
+unsigned long lastBlinkTime = 0;
+const int BLINK_INTERVAL = 500;  // 500ms on/off
+
 // ==================== LED CONTROL FUNCTIONS ====================
 
 void allLedsOff() {
   digitalWrite(RED_PIN, LOW);
   digitalWrite(GREEN_PIN, LOW);
-  
+
   #ifdef USE_ESP8266
     analogWrite(YELLOW_PIN, 0);
   #endif
   #ifdef USE_ESP32
     ledcWrite(PWM_CHANNEL, 0);
   #endif
-  
+
   isBreathing = false;
+  isBlinking = false;
 }
 
 void setLedState(String status) {
   allLedsOff();
   currentStatus = status;
-  
+
   if (status == "idle" || status == "red") {
     currentStatus = "idle";
     digitalWrite(RED_PIN, HIGH);
@@ -98,6 +107,13 @@ void setLedState(String status) {
     breathDirection = 5;
     Serial.println("📍 Status: PROCESSING (Yellow LED - Breathing)");
   }
+  else if (status == "waiting" || status == "prompt") {
+    currentStatus = "waiting";
+    isBlinking = true;
+    blinkState = false;
+    lastBlinkTime = millis();
+    Serial.println("📍 Status: WAITING (Yellow LED - Blinking)");
+  }
   else if (status == "complete" || status == "green") {
     currentStatus = "complete";
     digitalWrite(GREEN_PIN, HIGH);
@@ -107,15 +123,15 @@ void setLedState(String status) {
 
 void updateBreathing() {
   if (!isBreathing) return;
-  
+
   unsigned long currentTime = millis();
   if (currentTime - lastBreathUpdate < BREATH_INTERVAL) return;
-  
+
   lastBreathUpdate = currentTime;
-  
+
   // Update brightness
   breathBrightness += breathDirection;
-  
+
   // Reverse direction at limits
   if (breathBrightness >= 255) {
     breathBrightness = 255;
@@ -125,13 +141,31 @@ void updateBreathing() {
     breathBrightness = 0;
     breathDirection = 5;
   }
-  
+
   // Apply brightness
   #ifdef USE_ESP8266
     analogWrite(YELLOW_PIN, breathBrightness);
   #endif
   #ifdef USE_ESP32
     ledcWrite(PWM_CHANNEL, breathBrightness);
+  #endif
+}
+
+void updateBlinking() {
+  if (!isBlinking) return;
+
+  unsigned long currentTime = millis();
+  if (currentTime - lastBlinkTime < BLINK_INTERVAL) return;
+
+  lastBlinkTime = currentTime;
+  blinkState = !blinkState;
+
+  // Apply blink state (full brightness on/off)
+  #ifdef USE_ESP8266
+    analogWrite(YELLOW_PIN, blinkState ? 255 : 0);
+  #endif
+  #ifdef USE_ESP32
+    ledcWrite(PWM_CHANNEL, blinkState ? 255 : 0);
   #endif
 }
 
@@ -163,6 +197,7 @@ void handleRoot() {
   html += "<div>";
   html += "<button class='btn-red' onclick=\"fetch('/red')\">Idle</button>";
   html += "<button class='btn-yellow' onclick=\"fetch('/yellow')\">Processing</button>";
+  html += "<button class='btn-yellow' onclick=\"fetch('/waiting')\">Waiting</button>";
   html += "<button class='btn-green' onclick=\"fetch('/green')\">Complete</button>";
   html += "</div>";
   html += "<p style='margin-top:30px;color:#888;'>IP: " + WiFi.localIP().toString() + "</p>";
@@ -185,6 +220,11 @@ void handleYellow() {
 void handleGreen() {
   setLedState("complete");
   server.send(200, "text/plain", "OK - Status: COMPLETE (Green LED)");
+}
+
+void handleWaiting() {
+  setLedState("waiting");
+  server.send(200, "text/plain", "OK - Status: WAITING (Yellow LED - Blinking)");
 }
 
 void handleStatus() {
@@ -255,14 +295,16 @@ void setupWebServer() {
   server.on("/idle", handleRed);
   server.on("/yellow", handleYellow);
   server.on("/processing", handleYellow);
+  server.on("/waiting", handleWaiting);
+  server.on("/prompt", handleWaiting);
   server.on("/green", handleGreen);
   server.on("/complete", handleGreen);
   server.on("/status", handleStatus);
   server.onNotFound(handleNotFound);
-  
+
   // Enable CORS
   server.enableCORS(true);
-  
+
   server.begin();
   Serial.println("🌐 HTTP server started on port 80");
 }
@@ -333,16 +375,19 @@ void setup() {
 void loop() {
   // Handle HTTP requests
   server.handleClient();
-  
+
   // Update breathing effect if active
   updateBreathing();
-  
+
+  // Update blinking effect if active
+  updateBlinking();
+
   // Check WiFi connection and reconnect if needed
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("⚠️ WiFi disconnected! Reconnecting...");
     setupWiFi();
   }
-  
+
   // Small delay to prevent watchdog issues
   delay(1);
 }
