@@ -84,7 +84,7 @@ All LEDs through 220ohm resistors to ground
 
 **Recommended Setup:** Use hooks in `~/.claude/settings.json` for automatic LED status updates.
 
-**Optional Sound Integration (macOS):** Add sound notifications alongside LED control. See [Sound Integration Guide](docs/SOUND_INTEGRATION.md) for complete setup.
+**Sound Notifications (macOS):** The simulator automatically plays sounds when `/waiting` (waiting for user input) and `/green` (complete) endpoints are called. No additional configuration needed! See [Sound Integration Guide](docs/SOUND_INTEGRATION.md) for details.
 
 **For Simulator (localhost:3000):**
 ```json
@@ -146,6 +146,19 @@ All LEDs through 220ohm resistors to ground
 - Restart Claude Code after editing settings for hooks to load
 - Use `/hooks` command to verify hooks are registered
 - Replace `localhost:3000` with device IP (e.g., `192.168.1.100`) for hardware
+
+## Claude Code Skills
+
+This project includes specialized skills to guide AI agents through common tasks:
+
+- `/setup-hardware` - Hardware assembly and wiring guidance
+- `/flash-firmware` - Firmware upload and Arduino IDE configuration
+- `/test-api` - API endpoint testing and verification
+- `/configure-integration` - Claude Code hooks setup
+- `/add-led-pattern` - Create custom LED animations
+- `/troubleshoot` - Systematic debugging for all issues
+
+Skills are located in `.claude/skills/` directory. See [Skills README](.claude/skills/README.md) for details.
 
 ## Documentation
 

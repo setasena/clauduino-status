@@ -17,6 +17,12 @@ A physical LED status indicator for Claude Code. See at a glance whether Claude 
 - **Yellow (Blinking)** = Waiting (Claude needs user decision)
 - **Green** = Complete (task finished)
 
+**Sound Notifications (macOS only):**
+- The simulator includes built-in sound notifications that play automatically
+- Waiting sound plays when Claude needs your input
+- Completion sound plays when Claude finishes a task
+- No additional configuration needed!
+
 ## Quick Links
 
 | I want to... | Go to |
@@ -25,6 +31,7 @@ A physical LED status indicator for Claude Code. See at a glance whether Claude 
 | Buy components | [Hardware Guide](docs/HARDWARE_GUIDE.md) |
 | Flash the firmware | [Firmware Guide](docs/FIRMWARE_GUIDE.md) |
 | Connect to Claude Code | [Integration Guide](docs/INTEGRATION_GUIDE.md) |
+| Add sound notifications | [Sound Integration Guide](docs/SOUND_INTEGRATION.md) |
 | See API endpoints | [API Reference](docs/API_REFERENCE.md) |
 | Fix problems | [Troubleshooting](docs/TROUBLESHOOTING.md) |
 
@@ -77,7 +84,8 @@ clauduino-status/
 2. Device changes LED state based on endpoint called (`/yellow`, `/green`, `/red`)
 3. Yellow LED breathes while Claude is thinking (PWM animation)
 4. Green LED lights when Claude finishes responding
-5. Automatically returns to idle (red) after 5 seconds
+5. Sound notifications play automatically for `/waiting` and `/green` endpoints (simulator only, macOS)
+6. Automatically returns to idle (red) after 5 seconds
 
 **Integration Methods:**
 - **Hooks** (recommended) - Automatic integration via `~/.claude/settings.json`

@@ -20,11 +20,6 @@
             "type": "command",
             "command": "curl -s --max-time 1 http://localhost:3000/waiting > /dev/null 2>&1",
             "timeout": 2
-          },
-          {
-            "type": "command",
-            "command": "/Users/setasenaramadanie/Documents/personal/clauduino-status/scripts/play-sound.sh waiting",
-            "timeout": 2
           }
         ]
       }
@@ -37,11 +32,6 @@
             "type": "command",
             "command": "curl -s --max-time 1 http://localhost:3000/waiting > /dev/null 2>&1",
             "timeout": 2
-          },
-          {
-            "type": "command",
-            "command": "/Users/setasenaramadanie/Documents/personal/clauduino-status/scripts/play-sound.sh waiting",
-            "timeout": 2
           }
         ]
       }
@@ -52,11 +42,6 @@
           {
             "type": "command",
             "command": "curl -s --max-time 1 http://localhost:3000/green > /dev/null 2>&1 && (sleep 5 && curl -s --max-time 1 http://localhost:3000/red > /dev/null 2>&1) &",
-            "timeout": 2
-          },
-          {
-            "type": "command",
-            "command": "/Users/setasenaramadanie/Documents/personal/clauduino-status/scripts/play-sound.sh finish",
             "timeout": 2
           }
         ]

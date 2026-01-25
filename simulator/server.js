@@ -1,14 +1,49 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 
 const PORT = 3000;
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const noSound = args.includes('--no-sound');
+
+// Auto-detect sound capability
+const isMacOS = process.platform === 'darwin';
+const soundEnabled = !noSound && isMacOS;
 
 // Store connected SSE clients
 let clients = [];
 
 // Current status
 let currentStatus = 'idle';
+
+// Play sound helper function
+function playSound(soundFile) {
+  if (!soundEnabled) {
+    return;
+  }
+
+  const soundPath = path.join(__dirname, '..', soundFile);
+
+  // Check if sound file exists
+  if (!fs.existsSync(soundPath)) {
+    console.error(`⚠️  Sound file not found: ${soundPath}`);
+    return;
+  }
+
+  // Spawn afplay in background (non-blocking)
+  const afplay = spawn('afplay', [soundPath], {
+    detached: true,
+    stdio: 'ignore'
+  });
+
+  // Unref so it doesn't keep the process alive
+  afplay.unref();
+
+  console.log(`🔊 Playing sound: ${path.basename(soundFile)}`);
+}
 
 // Broadcast status to all connected clients
 function broadcast(status) {
@@ -51,6 +86,7 @@ const server = http.createServer((req, res) => {
 
   if (url === '/green' || url === '/complete') {
     broadcast('complete');
+    playSound('sound/finish.m4a');
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('OK - Status: COMPLETE (Green LED)');
     return;
@@ -58,6 +94,7 @@ const server = http.createServer((req, res) => {
 
   if (url === '/waiting' || url === '/prompt') {
     broadcast('waiting');
+    playSound('sound/waiting_user_input.m4a');
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('OK - Status: WAITING (Yellow LED - Blinking)');
     return;
@@ -117,18 +154,22 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
+  const soundStatus = soundEnabled ? '✅ Enabled' : '❌ Disabled';
+  const soundReason = !isMacOS ? ' (not macOS)' : (noSound ? ' (--no-sound flag)' : '');
+
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║   🔌 Arduino LED Simulator Server                         ║
 ║                                                           ║
 ║   Web UI:  http://localhost:${PORT}                         ║
+║   Sound:   ${soundStatus}${soundReason.padEnd(28 - soundStatus.length)}║
 ║                                                           ║
 ║   API Endpoints:                                          ║
 ║   ├── GET /red     → Set to Idle (Red LED)               ║
 ║   ├── GET /yellow  → Set to Processing (Yellow LED)      ║
-║   ├── GET /waiting → Set to Waiting (Yellow Blinking)    ║
-║   ├── GET /green   → Set to Complete (Green LED)         ║
+║   ├── GET /waiting → Set to Waiting (Yellow + Sound)     ║
+║   ├── GET /green   → Set to Complete (Green + Sound)     ║
 ║   └── GET /status  → Get current status                  ║
 ║                                                           ║
 ║   Test with curl:                                         ║
