@@ -64,13 +64,31 @@ curl http://localhost:3000/status    # Get current status as JSON
 | `/status` | - | JSON with status, uptime, IP, RSSI |
 | `/events` | - | SSE stream (simulator only) |
 
-## Hardware Pin Mapping
+## Hardware Configurations
 
+The firmware supports two LED configurations (set via `#define` in firmware):
+
+**Option A: Three Separate LEDs** (`USE_SEPARATE_LEDS`)
 ```
 ESP8266: Red=D1(GPIO5), Yellow=D2(GPIO4), Green=D3(GPIO0)
 ESP32:   Red=GPIO5,     Yellow=GPIO18,    Green=GPIO19
-All LEDs through 220ohm resistors to ground
 ```
+
+**Option B: RGB LED Common Cathode** (`USE_RGB_LED`) - recommended
+```
+ESP8266: RGB_Red=D1(GPIO5), RGB_Green=D2(GPIO4), Common=GND
+ESP32:   RGB_Red=GPIO5,     RGB_Green=GPIO18,    Common=GND
+Yellow color = Red + Green mixed via PWM
+```
+
+**Optional: Active Buzzer** (`USE_BUZZER`)
+```
+ESP8266: Buzzer=D5(GPIO14)
+ESP32:   Buzzer=GPIO14
+Beeps: 3x for waiting, 2x for complete, 1x on boot
+```
+
+All LEDs through 220Ω resistors to ground.
 
 ## Key Patterns
 

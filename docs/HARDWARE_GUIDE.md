@@ -97,33 +97,15 @@ Better choice if you want more features later:
 
 ## Wiring Diagrams
 
-### ESP8266 NodeMCU Pinout
+The firmware supports two LED configurations:
+- **Option A:** Three separate LEDs (Red, Yellow, Green)
+- **Option B:** Single RGB LED (Common Cathode) - recommended for compact builds
 
-```
-┌─────────────────────────────────────┐
-│           ESP8266 NodeMCU           │
-│                                     │
-│  3V3  ●────────────────────●  VIN   │
-│  GND  ●────────────────────●  GND   │
-│  TX   ●────────────────────●  RST   │
-│  RX   ●────────────────────●  EN    │
-│  D0   ●────────────────────●  3V3   │
-│  D1   ●──── RED LED ───────●  GND   │
-│  D2   ●──── YELLOW LED ────●  CLK   │
-│  D3   ●──── GREEN LED ─────●  SD0   │
-│  D4   ●────────────────────●  CMD   │
-│  GND  ●────────────────────●  SD1   │
-│  3V3  ●────────────────────●  SD2   │
-│  D5   ●────────────────────●  SD3   │
-│  D6   ●────────────────────●  RSV   │
-│  D7   ●────────────────────●  RSV   │
-│  D8   ●────────────────────●  A0    │
-│                                     │
-└─────────────────────────────────────┘
-```
+---
 
-### Wiring Quick Reference
+### Option A: Three Separate LEDs
 
+**Wiring Quick Reference:**
 ```
 ESP8266 Pin    →    Component
 ───────────────────────────────
@@ -133,8 +115,7 @@ D3 (GPIO0)     →    Green LED (+) → 220Ω → GND
 GND            →    Common ground for all LEDs
 ```
 
-### Detailed Wiring Diagram
-
+**Detailed Diagram:**
 ```
 ESP8266          LEDs              Resistors
 ────────         ────              ─────────
@@ -147,9 +128,105 @@ ESP8266          LEDs              Resistors
 
   D3 ──────────── [GREEN LED] ─────── [220Ω] ──── GND
                (Anode)  (Cathode)
+```
 
-Note: LED longer leg = Anode (positive), connect to GPIO pin
-      LED shorter leg = Cathode (negative), connect through resistor to GND
+**Firmware config:** Uncomment `#define USE_SEPARATE_LEDS`
+
+---
+
+### Option B: RGB LED (Common Cathode) + Buzzer
+
+This option uses a single 4-leg RGB LED. Yellow is created by mixing Red + Green.
+
+**Components:**
+- 1x RGB LED (Common Cathode, 4 legs)
+- 1x Active Buzzer (optional, for audio alerts)
+- 2x 220Ω resistors
+
+**Wiring Quick Reference:**
+```
+ESP8266 Pin    →    Component
+───────────────────────────────
+D1 (GPIO5)     →    RGB Red leg → 220Ω → GND
+D2 (GPIO4)     →    RGB Green leg → 220Ω → GND
+               →    RGB Blue leg (not connected)
+               →    RGB Common leg (longest) → GND
+D5 (GPIO14)    →    Buzzer (+)
+GND            →    Buzzer (-) and RGB Common
+```
+
+**RGB LED Leg Order (typical, looking at flat side):**
+```
+     ┌───────┐
+     │  ●●●  │  (flat edge)
+     └─┬┬┬┬──┘
+       ││││
+       RGCB
+       e r o l
+       d n m u
+         d m e
+           o
+           n
+```
+- **R** = Red (to D1 via 220Ω)
+- **GND** = Common Cathode, longest leg (to GND)
+- **G** = Green (to D2 via 220Ω)
+- **B** = Blue (leave unconnected)
+
+**Detailed Diagram:**
+```
+ESP8266                RGB LED              Resistors
+────────               ───────              ─────────
+
+  D1 ─────────────── Red leg ────── [220Ω] ────┐
+                                               │
+  D2 ─────────────── Green leg ──── [220Ω] ────┤
+                                               │
+                     Blue leg     (not used)   │
+                                               │
+  GND ───────────── Common (longest) ──────────┘
+
+
+  D5 ─────────────── Buzzer (+)
+                        │
+  GND ───────────── Buzzer (-)
+```
+
+**Color Mapping:**
+| Status | Red Pin | Green Pin | Result Color |
+|--------|---------|-----------|--------------|
+| Idle | ON | OFF | Red |
+| Processing | PWM | PWM | Yellow (breathing) |
+| Waiting | Blink | Blink | Yellow (blinking) |
+| Complete | OFF | ON | Green |
+
+**Firmware config:** Uncomment `#define USE_RGB_LED` and `#define USE_BUZZER`
+
+---
+
+### ESP8266 NodeMCU Pinout Reference
+
+```
+┌─────────────────────────────────────┐
+│           ESP8266 NodeMCU           │
+│                                     │
+│  3V3  ●────────────────────●  VIN   │
+│  GND  ●────────────────────●  GND   │
+│  TX   ●────────────────────●  RST   │
+│  RX   ●────────────────────●  EN    │
+│  D0   ●────────────────────●  3V3   │
+│  D1   ●──── LED Red ───────●  GND   │
+│  D2   ●──── LED Green ─────●  CLK   │
+│  D3   ●──── (3-LED only) ──●  SD0   │
+│  D4   ●────────────────────●  CMD   │
+│  GND  ●────────────────────●  SD1   │
+│  3V3  ●────────────────────●  SD2   │
+│  D5   ●──── Buzzer (+) ────●  SD3   │
+│  D6   ●────────────────────●  RSV   │
+│  D7   ●────────────────────●  RSV   │
+│  D8   ●────────────────────●  A0    │
+│                                     │
+└─────────────────────────────────────┘
 ```
 
 ### ESP32 Pin Mapping
