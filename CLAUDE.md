@@ -88,6 +88,15 @@ ESP32:   Buzzer=GPIO14
 Beeps: 3x for waiting, 2x for complete, 1x on boot
 ```
 
+**Optional: 16x2 I2C LCD** (`USE_LCD`)
+```
+ESP8266: SDA=D3(GPIO0), SCL=D4(GPIO2)
+ESP32:   SDA=GPIO21,    SCL=GPIO22
+I2C Address: 0x27 (try 0x3F if not working)
+Row 1: Status + WiFi icon
+Row 2: IP Address + Signal (G=Good, F=Fair, P=Poor)
+```
+
 All LEDs through 220Ω resistors to ground.
 
 ## Key Patterns

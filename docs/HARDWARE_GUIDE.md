@@ -204,21 +204,94 @@ ESP8266                RGB LED              Resistors
 
 ---
 
+### Option C: RGB LED + Buzzer + 16x2 I2C LCD
+
+This is the full-featured setup with visual LED indicator, audio feedback, and text display.
+
+**Additional Components:**
+- 1x 16x2 LCD display
+- 1x I2C LCD backpack (PCF8574-based)
+
+**Step 1: Solder I2C Backpack to LCD**
+1. Align the 16-pin I2C backpack with the LCD's 16-pin header
+2. Solder all 16 pins carefully
+3. The backpack provides VCC, GND, SDA, SCL connections
+
+**Wiring Quick Reference:**
+```
+ESP8266 Pin    →    Component
+───────────────────────────────
+D1 (GPIO5)     →    RGB Red leg → 220Ω → GND
+D2 (GPIO4)     →    RGB Green leg → 220Ω → GND
+D3 (GPIO0)     →    LCD I2C SDA
+D4 (GPIO2)     →    LCD I2C SCL
+D5 (GPIO14)    →    Buzzer (+)
+3V3            →    LCD I2C VCC
+GND            →    LCD I2C GND, Buzzer (-), RGB Common
+```
+
+**Detailed Diagram:**
+```
+ESP8266                Components
+────────               ──────────
+
+  3V3 ─────────────── LCD Backpack VCC
+
+  D1 ──────────────── RGB Red ────── [220Ω] ────┐
+                                                │
+  D2 ──────────────── RGB Green ──── [220Ω] ────┤
+                                                │
+  D3 ──────────────── LCD SDA                   │
+                                                │
+  D4 ──────────────── LCD SCL                   │
+                                                │
+  D5 ──────────────── Buzzer (+)                │
+                         │                      │
+  GND ─────────────────┬─┴── Buzzer (-)         │
+                       │                        │
+                       ├──── LCD Backpack GND   │
+                       │                        │
+                       └──── RGB Common ────────┘
+```
+
+**LCD Display Layout:**
+```
+┌────────────────┐
+│Idle         [W]│  ← Row 1: Status + WiFi icon
+│192.168.1.100 G│  ← Row 2: IP + Signal quality
+└────────────────┘
+
+Signal Quality: G=Good (>-50dBm), F=Fair (-50 to -70dBm), P=Poor (<-70dBm)
+```
+
+**I2C Address Troubleshooting:**
+- Default address: `0x27`
+- Alternative address: `0x3F`
+- If LCD doesn't work, run an I2C scanner sketch to detect the correct address
+- Edit `LiquidCrystal_I2C lcd(0x27, 16, 2);` in firmware to change address
+
+**Required Library:**
+- Install "LiquidCrystal I2C" by Frank de Brabander via Arduino IDE Library Manager
+
+**Firmware config:** Uncomment `#define USE_RGB_LED`, `#define USE_BUZZER`, and `#define USE_LCD`
+
+---
+
 ### ESP8266 NodeMCU Pinout Reference
 
 ```
 ┌─────────────────────────────────────┐
 │           ESP8266 NodeMCU           │
 │                                     │
-│  3V3  ●────────────────────●  VIN   │
-│  GND  ●────────────────────●  GND   │
+│  3V3  ●──── LCD VCC ───────●  VIN   │
+│  GND  ●──── LCD GND ───────●  GND   │
 │  TX   ●────────────────────●  RST   │
 │  RX   ●────────────────────●  EN    │
 │  D0   ●────────────────────●  3V3   │
 │  D1   ●──── LED Red ───────●  GND   │
 │  D2   ●──── LED Green ─────●  CLK   │
-│  D3   ●──── (3-LED only) ──●  SD0   │
-│  D4   ●────────────────────●  CMD   │
+│  D3   ●──── LCD SDA ───────●  SD0   │
+│  D4   ●──── LCD SCL ───────●  CMD   │
 │  GND  ●────────────────────●  SD1   │
 │  3V3  ●────────────────────●  SD2   │
 │  D5   ●──── Buzzer (+) ────●  SD3   │
@@ -236,6 +309,9 @@ ESP8266                RGB LED              Resistors
 | Red LED | GPIO5 |
 | Yellow LED | GPIO18 |
 | Green LED | GPIO19 |
+| Buzzer | GPIO14 |
+| LCD SDA | GPIO21 |
+| LCD SCL | GPIO22 |
 
 ### LED Polarity Guide
 

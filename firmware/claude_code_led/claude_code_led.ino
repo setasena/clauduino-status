@@ -38,12 +38,18 @@
 
 // Optional Features
 #define USE_BUZZER              // Comment out to disable buzzer
+#define USE_LCD                 // Comment out to disable 16x2 I2C LCD
 
 // WiFi Credentials - UPDATE THESE!
-const char* WIFI_SSID = "YOUR_WIFI_SSID";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID = "Supersena";
+const char* WIFI_PASSWORD = "Natasena123";
 
 // ==================== PIN DEFINITIONS ====================
+
+#ifdef USE_LCD
+  #include <Wire.h>
+  #include <LiquidCrystal_I2C.h>
+#endif
 
 #ifdef USE_ESP8266
   #include <ESP8266WiFi.h>
@@ -67,6 +73,11 @@ const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
   #ifdef USE_BUZZER
     const int BUZZER_PIN = D5;     // GPIO14
   #endif
+
+  #ifdef USE_LCD
+    const int LCD_SDA = D3;        // GPIO0
+    const int LCD_SCL = D4;        // GPIO2
+  #endif
 #endif
 
 #ifdef USE_ESP32
@@ -89,11 +100,48 @@ const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
     const int BUZZER_PIN = 14;
   #endif
 
+  #ifdef USE_LCD
+    const int LCD_SDA = 21;        // Default I2C SDA
+    const int LCD_SCL = 22;        // Default I2C SCL
+  #endif
+
   // PWM settings for ESP32
   const int PWM_CHANNEL_0 = 0;
   const int PWM_CHANNEL_1 = 1;
   const int PWM_FREQ = 5000;
   const int PWM_RESOLUTION = 8;
+#endif
+
+// ==================== LCD SETUP ====================
+
+#ifdef USE_LCD
+  // Try 0x27 first, common for PCF8574. If not working, try 0x3F
+  LiquidCrystal_I2C lcd(0x27, 16, 2);
+  bool lcdInitialized = false;
+  unsigned long lastLcdUpdate = 0;
+  const int LCD_UPDATE_INTERVAL = 150;  // Faster updates for animation
+  String lastLcdStatus = "";
+  int animFrame = 0;
+
+  // Custom characters for animations
+  byte spinnerFrames[4][8] = {
+    {0b00000, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b00000},  // |
+    {0b00000, 0b00001, 0b00010, 0b00100, 0b01000, 0b10000, 0b00000, 0b00000},  // /
+    {0b00000, 0b00000, 0b00000, 0b11111, 0b00000, 0b00000, 0b00000, 0b00000},  // -
+    {0b00000, 0b10000, 0b01000, 0b00100, 0b00010, 0b00001, 0b00000, 0b00000}   // backslash
+  };
+
+  byte checkMark[8] = {
+    0b00000, 0b00001, 0b00010, 0b10100, 0b01000, 0b00000, 0b00000, 0b00000
+  };
+
+  byte idleDot[8] = {
+    0b00000, 0b00000, 0b01110, 0b01110, 0b01110, 0b00000, 0b00000, 0b00000
+  };
+
+  byte waitingIcon[8] = {
+    0b00100, 0b01110, 0b01110, 0b00100, 0b00100, 0b00000, 0b00100, 0b00000
+  };
 #endif
 
 // ==================== GLOBAL VARIABLES ====================
@@ -166,6 +214,143 @@ void updateBuzzer() {
       buzzerStartTime = millis();
     }
   }
+}
+#endif
+
+// ==================== LCD FUNCTIONS ====================
+
+#ifdef USE_LCD
+void setupLcd() {
+  #ifdef USE_ESP8266
+    Wire.begin(LCD_SDA, LCD_SCL);
+  #else
+    Wire.begin(LCD_SDA, LCD_SCL);
+  #endif
+
+  lcd.init();
+  lcd.backlight();
+
+  // Load initial custom characters
+  lcd.createChar(0, idleDot);
+  lcd.createChar(1, checkMark);
+  lcd.createChar(2, waitingIcon);
+
+  lcd.setCursor(0, 0);
+  lcd.print("  Claude  Code  ");
+  lcd.setCursor(0, 1);
+  lcd.print("  Connecting... ");
+
+  lcdInitialized = true;
+  Serial.println("📺 LCD initialized (16x2 I2C)");
+}
+
+void updateLcd() {
+  if (!lcdInitialized) return;
+
+  unsigned long currentTime = millis();
+  if (currentTime - lastLcdUpdate < LCD_UPDATE_INTERVAL) return;
+  lastLcdUpdate = currentTime;
+
+  // Reset animation frame on status change
+  if (currentStatus != lastLcdStatus) {
+    lastLcdStatus = currentStatus;
+    animFrame = 0;
+    lcd.clear();
+  }
+
+  if (currentStatus == "idle") {
+    // Idle: Zen dots floating
+    lcd.setCursor(0, 0);
+    lcd.print("      Idle      ");
+    lcd.setCursor(0, 1);
+
+    // Animated dots pattern
+    String dots = "                ";
+    int pos = animFrame % 16;
+    dots[pos] = '.';
+    dots[(pos + 5) % 16] = '.';
+    dots[(pos + 10) % 16] = '.';
+    lcd.print(dots);
+    animFrame++;
+  }
+  else if (currentStatus == "processing") {
+    // Processing: Spinner animation
+    lcd.createChar(3, spinnerFrames[animFrame % 4]);
+
+    lcd.setCursor(0, 0);
+    lcd.print("  Processing... ");
+    lcd.setCursor(0, 1);
+
+    // Progress bar animation
+    int barPos = animFrame % 14;
+    lcd.print(" ");
+    for (int i = 0; i < 14; i++) {
+      if (i == barPos || i == barPos + 1) {
+        lcd.print("=");
+      } else {
+        lcd.print("-");
+      }
+    }
+    lcd.print(" ");
+    animFrame++;
+  }
+  else if (currentStatus == "waiting") {
+    // Waiting: Blinking attention
+    lcd.setCursor(0, 0);
+    if (animFrame % 6 < 3) {
+      lcd.print("    Waiting!    ");
+    } else {
+      lcd.print("  Your  Input!  ");
+    }
+    lcd.setCursor(0, 1);
+
+    // Bouncing arrow animation
+    String arrows = "                ";
+    int bouncePos = animFrame % 10;
+    if (bouncePos > 5) bouncePos = 10 - bouncePos;  // Bounce back
+    arrows[3 + bouncePos] = '>';
+    arrows[12 - bouncePos] = '<';
+    lcd.print(arrows);
+    animFrame++;
+  }
+  else if (currentStatus == "complete") {
+    // Complete: Celebration animation
+    lcd.setCursor(0, 0);
+    lcd.print("    Complete    ");
+    lcd.setCursor(0, 1);
+
+    // Sparkle effect
+    String sparkle = "   *  Done  *   ";
+    int sparkPos = animFrame % 4;
+    if (sparkPos == 1) sparkle = "  *   Done   *  ";
+    else if (sparkPos == 2) sparkle = " *    Done    * ";
+    else if (sparkPos == 3) sparkle = "*     Done     *";
+    lcd.print(sparkle);
+    animFrame++;
+  }
+}
+
+void showLcdConnecting() {
+  if (!lcdInitialized) return;
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("  Claude  Code  ");
+  lcd.setCursor(0, 1);
+  lcd.print("  Connecting... ");
+}
+
+void showLcdConnected() {
+  if (!lcdInitialized) return;
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("   Connected!   ");
+  lcd.setCursor(0, 1);
+  // Center the IP address
+  String ip = WiFi.localIP().toString();
+  int padding = (16 - ip.length()) / 2;
+  for (int i = 0; i < padding; i++) lcd.print(" ");
+  lcd.print(ip);
+  for (int i = 0; i < 16 - padding - ip.length(); i++) lcd.print(" ");
 }
 #endif
 
@@ -286,6 +471,12 @@ void setLedState(String status) {
     #endif
     Serial.println("📍 Status: COMPLETE (Green)");
   }
+
+  // Force immediate LCD update on status change
+  #ifdef USE_LCD
+    lastLcdStatus = "";  // Reset to force update
+    updateLcd();
+  #endif
 }
 
 void updateBreathing() {
@@ -409,9 +600,14 @@ void handleStatus() {
   json += "\"rssi\":" + String(WiFi.RSSI()) + ",";
   json += "\"led_type\":\"" + ledType + "\",";
   #ifdef USE_BUZZER
-    json += "\"buzzer\":true";
+    json += "\"buzzer\":true,";
   #else
-    json += "\"buzzer\":false";
+    json += "\"buzzer\":false,";
+  #endif
+  #ifdef USE_LCD
+    json += "\"lcd\":true";
+  #else
+    json += "\"lcd\":false";
   #endif
   json += "}";
 
@@ -498,7 +694,12 @@ void setup() {
   #else
     Serial.println("║   Buzzer: Disabled                        ║");
   #endif
-  Serial.println("║   Version 2.0                             ║");
+  #ifdef USE_LCD
+    Serial.println("║   LCD: 16x2 I2C Enabled                   ║");
+  #else
+    Serial.println("║   LCD: Disabled                           ║");
+  #endif
+  Serial.println("║   Version 2.1                             ║");
   Serial.println("╚═══════════════════════════════════════════╝");
   Serial.println();
 
@@ -533,8 +734,17 @@ void setup() {
     buzzerOff();
   #endif
 
+  #ifdef USE_LCD
+    setupLcd();
+  #endif
+
   allLedsOff();
   setupWiFi();
+
+  #ifdef USE_LCD
+    showLcdConnected();
+    delay(1000);  // Show connected message briefly
+  #endif
   setupWebServer();
 
   bootTime = millis();
@@ -576,9 +786,20 @@ void loop() {
     updateBuzzer();
   #endif
 
+  #ifdef USE_LCD
+    updateLcd();
+  #endif
+
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("⚠️ WiFi disconnected! Reconnecting...");
+    #ifdef USE_LCD
+      showLcdConnecting();
+    #endif
     setupWiFi();
+    #ifdef USE_LCD
+      showLcdConnected();
+      delay(1000);
+    #endif
   }
 
   delay(1);
