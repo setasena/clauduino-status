@@ -2,6 +2,22 @@
 
 A physical LED status indicator for Claude Code. See at a glance whether Claude is idle, processing, or complete.
 
+> **Why I made this:** This is just a fun weekend project for me. I wanted a way to know when Claude is done writing code or needs my input—especially when I'm chilling on my bed away from the screen. Now I can rely on the beeper beeping, check the LCD, or just notice the bright LEDs lighting up the room!
+
+## Demo
+
+[![Clauduino Status Demo](https://img.youtube.com/vi/If50QVS7wMI/maxresdefault.jpg)](https://youtu.be/If50QVS7wMI)
+
+▶️ **[Watch the full demo on YouTube](https://youtu.be/If50QVS7wMI)**
+
+## Hardware Showcase
+
+![ESP Board](https://res.cloudinary.com/dzhed5o95/image/upload/v1770134781/espboard_bn69uq.jpg)
+
+![LCD Display](https://res.cloudinary.com/dzhed5o95/image/upload/v1770134781/lcd_lowwof.jpg)
+
+## Architecture
+
 ```
 ┌──────────────┐    HTTP     ┌──────────────────────────┐
 │  Claude Code │ ──────────▶ │   ESP8266/ESP32 Board    │
